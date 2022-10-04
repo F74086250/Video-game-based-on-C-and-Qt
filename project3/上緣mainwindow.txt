@@ -1,0 +1,586 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QGraphicsPixmapItem>
+#include <QTimer>
+#include <QKeyEvent>
+#include <QList>
+#include <QTime>
+#include <cstdlib>
+#include <QPushButton>
+#include <QFont>
+#include <QLabel>
+#include <QString>
+#include "springset.h"
+#include <QDebug>
+#include "fadedplatform.h"
+#include "monster.h"
+#include "bullet.h"
+#include "platform.h"
+#include "coin.h"
+#include "hazardset.h"
+#include <QMouseEvent>
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+signals:
+    void call_mn();
+
+public:
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+    void keyPressEvent(QKeyEvent *e);
+    void keyReleaseEvent(QKeyEvent *f);
+    void mousePressEvent(QMouseEvent *e);
+
+private slots:
+    void receive_mn();
+private:
+    Ui::MainWindow *ui;
+
+    QGraphicsScene *scene;
+    QGraphicsView *view;
+    QGraphicsPixmapItem *player,*ground,*stair,*remove,*spring,*coingraphy,*specialplatform,*monster1,*hazard;
+    QTimer *Tu, *Td,*Tbu,*Trm,*Tsc;
+    int v=0,vbu=5,t=10,a=0,b=0,coinscore=0,totalscore=0;double ac=2.0*5,y=0,z=0;
+    bool c=0,judge=0,pt=0;
+    int point=0;
+    QPushButton *btm,*restart,*pause,*resume;
+    QFont btmft,restartft;
+
+    QLabel *score,*qpause,*qdeath,*protect;
+
+
+private:
+    void generate();
+    void death();
+
+
+private slots:
+    void UP();
+    void DOWN();
+
+    void tomn();
+    void frestart();
+    void fremove();
+    void fpause();
+    void fresume();
+
+};
+
+#endif // MAINWINDOW_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    scene =new QGraphicsScene(this);
+    view = new QGraphicsView(this);
+    view ->setScene(scene);
+    view ->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view ->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    scene ->setSceneRect(0,-100000000,1000,100000000);
+    view ->setFixedSize(1000,900);
+    qsrand(time(nullptr));
+
+    player = new QGraphicsPixmapItem();
+    player ->setPixmap(QPixmap(":/image/cat.jpg").scaled(100,100));
+    player ->setPos(500,-200);
+    view->centerOn(player);
+    scene ->addItem(player);
+
+    ground = new platform();
+    ground ->setPixmap(QPixmap(":/image/ground.jpg").scaled(1200,50));
+    ground ->setPos(0,-50);
+    scene ->addItem(ground);
+
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+
+
+    remove = new QGraphicsPixmapItem();
+    remove ->setPixmap(QPixmap(":/image/remove.png").scaled(1000,50));
+    remove->setPos(0,500);
+    scene ->addItem(remove);
+
+    btm=new QPushButton("Menu",this);
+    btm->setGeometry(1000,800,200,100);
+    connect(btm,SIGNAL(clicked(bool)),this,SLOT(tomn()));
+    btmft.setPointSize(20);
+    btm->setFont(btmft);
+
+    restart=new QPushButton("Restart",this);
+    restart->setGeometry(1000,700,200,100);
+    connect(restart,SIGNAL(clicked(bool)),this,SLOT(frestart()));
+    restartft.setPointSize(20);
+    restart->setFont(restartft);
+
+    pause=new QPushButton("Pause",this);
+    pause->setGeometry(1000,500,200,100);
+    connect(pause,SIGNAL(clicked(bool)),this,SLOT(fpause()));
+    pause->setFont(QFont("",20));
+
+    resume=new QPushButton("Resume",this);
+    resume->setGeometry(1000,600,0,0);
+    connect(resume,SIGNAL(clicked(bool)),this,SLOT(fresume()));
+    pause->setFont(QFont("",20));
+
+    score=new QLabel(this);
+    score->setGeometry(1000,0,200,100);
+    score->setFont(QFont("",30));
+
+    qdeath=new QLabel("Death",this);
+    qdeath->setGeometry(1000,0,0,0);
+    qdeath->setFont(QFont("",30));
+
+    protect=new QLabel("Domineering-state!!",this);
+    protect->setGeometry(1000,300,0,0);
+    protect->setFont(QFont("",18));
+
+    qpause=new QLabel("Pause",this);
+    qpause->setGeometry(0,0,0,0);
+    qpause->setFont(QFont("",30));
+
+    Tu = new QTimer(this);
+    connect(Tu,SIGNAL(timeout()),this,SLOT(UP()));
+
+    Td = new QTimer(this);
+    connect(Td,SIGNAL(timeout()),this,SLOT(DOWN()));
+
+    Tbu=new QTimer(this);
+
+
+    Trm = new QTimer(this);
+    connect(Trm,SIGNAL(timeout()),this,SLOT(fremove()));
+
+
+
+    Tbu->start(t);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *e)
+{
+    switch(e->key())
+    {
+        case Qt::Key_A:
+
+                v=-5;
+        break;
+        case Qt::Key_D:
+                v=5;
+        break;
+        case Qt::Key_W:
+                pt=1;
+             protect->setGeometry(1000,300,200,100);
+        break;
+
+    }
+}
+void MainWindow::keyReleaseEvent(QKeyEvent *f)
+{
+    switch(f->key())
+    {
+        case Qt::Key_A:
+            v=0;
+        break;
+        case Qt::Key_D:
+            v=0;
+        break;
+        case Qt::Key_W:
+            pt=0;
+            protect->setGeometry(1000,300,0,0);
+        break;
+
+    }
+
+}
+
+void MainWindow::UP()
+{
+
+    player->setPos(player->x()+v,player->y()-ac);
+
+    if(static_cast<int>(player->y())%1500==0)
+    {
+        generate();
+
+    }
+    ac-=0.1;
+    view->centerOn(player);
+
+
+
+    if(player->x()<0-player->pixmap().width())
+        player->setX(player->x()+1000);
+
+    if(player->x()>1000)
+        player->setX(player->x()-1000);
+    QList<QGraphicsItem*> coinitem=player->collidingItems();
+    for (int i=0;i<coinitem.size();i++)
+    {
+
+        if(typeid(*(coinitem[i]))==typeid(coin))
+        {
+            scene->removeItem(coinitem[i]);
+            coinscore+=1000;
+            score->setNum(totalscore+coinscore);
+        }
+    }
+
+    QList<QGraphicsItem*> item=player->collidingItems();
+    for (int i=0;i<item.size();i++)
+    {
+        if(pt==0){
+        if(typeid(*(item[i]))==typeid(monster))
+        {
+
+            death();
+        }
+
+        if(typeid(*(item[i]))==typeid(hazardset))
+        {
+
+            death();
+        }
+       }
+
+
+    }
+
+
+    if(ac<=0)
+    {
+        Tu->stop();
+        Td->start(t);
+        judge=0;
+    }
+}
+
+void MainWindow::DOWN()
+{
+
+    player->setPos(player->x()+v,player->y()+ac);
+    ac+=0.1;
+   view->centerOn(player);
+
+    if(player->x()<0-player->pixmap().width())
+        player->setX(player->x()+1000);
+
+    if(player->x()>1000)
+        player->setX(player->x()-1000);
+    if(player->collidesWithItem(remove))
+    {
+        death();
+    }
+
+    QList<QGraphicsItem*> item=player->collidingItems();
+    for (int i=0;i<item.size();i++)
+    {
+        if((player->y()+75)<item[i]->y())
+        if(typeid(*(item[i]))==typeid(platform))
+        {
+            totalscore+=1000;
+            score->setNum(totalscore+coinscore);
+            ac=10;
+            Td->stop();
+            v=0;
+            Tu->start(t);
+            judge=1;
+        }
+        if(typeid(*(item[i]))==typeid(coin))
+        {
+            scene->removeItem(item[i]);
+            coinscore+=1000;
+            score->setNum(totalscore+coinscore);
+        }
+        if((player->y()+10)<item[i]->y())
+        if(typeid(*(item[i]))==typeid(springset))
+        {
+            totalscore+=1000;
+            score->setNum(totalscore+coinscore);
+            ac=15;
+            Td->stop();
+            v=0;
+            Tu->start(5);
+            judge=1;
+        }
+
+        if((player->y()+75)<item[i]->y())
+        if(typeid(*(item[i]))==typeid(fadedplatform))
+        {
+            totalscore+=1000;
+            score->setNum(totalscore+coinscore);
+            scene->removeItem(item[i]);
+            ac=10;
+            Td->stop();
+            v=0;
+            Tu->start(t);
+            judge=1;
+        }
+
+        if(pt==0)
+        if(typeid(*(item[i]))==typeid(monster))
+        {
+
+            death();
+        }
+
+        if(pt==0)
+        if(typeid(*(item[i]))==typeid(hazardset))
+        {
+
+            death();
+        }
+
+
+
+    }
+}
+
+void MainWindow::tomn()
+{
+    this->hide();
+    emit call_mn();
+}
+
+void MainWindow::generate()
+{
+    for (int i=0;i<20;i++)
+    {
+        stair = new platform();
+
+        stair ->setPos(rand()%800,y-=200);
+        scene ->addItem(stair);
+
+        if(qrand()%100<25){
+        spring = new springset();
+        spring ->setPixmap(QPixmap(":/image/spring.jpg").scaled(50,50));
+        spring ->setPos(stair->x(),stair->y()-50);
+        scene ->addItem(spring);
+        }
+
+        if(qrand()%100<20){
+        hazard = new hazardset();
+        hazard ->setPixmap(QPixmap(":/image/hazard.jfif").scaled(50,50));
+        hazard ->setPos(stair->x()+50+rand()%30,stair->y()-50);
+        scene ->addItem(hazard);
+        }
+
+        if(qrand()%100<50){
+        coingraphy = new coin();
+        coingraphy ->setPixmap(QPixmap(":/image/coin.png").scaled(20,20));
+        coingraphy ->setPos(rand()%800,z-=300);
+        scene ->addItem(coingraphy);
+        }
+
+        if(qrand()%100<30){
+        specialplatform = new fadedplatform();
+
+        specialplatform ->setPos(rand()%800,a-=500);
+        scene ->addItem(specialplatform);
+
+        if(qrand()%100<50){
+        monster1 = new monster();
+
+        monster1 ->setPos(rand()%800,b-=700);
+        scene ->addItem(monster1);
+        }
+
+    }
+}
+}
+
+
+void MainWindow::receive_mn()
+{
+    Tu->start(t);
+    Trm->start(t);
+
+    this->show();
+}
+void MainWindow::frestart()
+{
+    scene->clear();
+    pause->setGeometry(1000,500,200,100);
+    resume->setGeometry(1000,600,0,0);
+    qpause->setGeometry(0,0,0,0);
+    qdeath->setGeometry(0,0,0,0);
+    coinscore=0;
+    totalscore=0;
+    a=0,b=0,y=0;z=0;
+
+
+    score->setNum(totalscore+coinscore);
+
+    score->setGeometry(1000,0,200,100);
+    Tu->start(t);
+    Td->stop();
+    Tbu->start(t);
+    Trm->start(t);
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+    generate();
+
+    player = new QGraphicsPixmapItem();
+    player ->setPixmap(QPixmap(":/image/cat.jpg").scaled(100,100));
+    player ->setPos(500,-200);
+    view->centerOn(player);
+    scene ->addItem(player);
+
+    ground = new platform();
+    ground ->setPixmap(QPixmap(":/image/ground.jpg").scaled(1200,50));
+    ground ->setPos(0,-50);
+    scene ->addItem(ground);
+
+
+
+
+    remove = new QGraphicsPixmapItem();
+    remove ->setPixmap(QPixmap(":/image/remove.png").scaled(1000,50));
+    remove->setPos(0,500);
+    scene ->addItem(remove);
+
+
+
+
+}
+void MainWindow::fremove()
+{
+    remove->setPos(remove->x(),remove->y()-2);
+
+    QList<QGraphicsItem*> removeitem=remove->collidingItems();
+    for (int i=0;i<removeitem.size();i++)
+    {
+        scene->removeItem(removeitem[i]);
+    }
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *e)
+{
+    bullet *bt = new bullet();
+    bt ->setPixmap(QPixmap(":/image/bullet1.jfif").scaled(400,200));
+    connect(Tbu,SIGNAL(timeout()),bt,SLOT(bumove()));
+    connect(Tbu,SIGNAL(timeout()),bt,SLOT(collide_monster()));
+    bt ->setPos(player->x(),player->y()-50);
+    scene ->addItem(bt);
+}
+
+void MainWindow::death()
+{
+    qdeath->setGeometry(200,100,600,200);
+    score->setGeometry(200,300,300,100);
+    Tu->stop();
+    Td->stop();
+    Tbu->stop();
+    Trm->stop();
+
+}
+
+void MainWindow::fpause()
+{
+    pause->setGeometry(1000,500,0,0);
+    resume->setGeometry(1000,600,200,100);
+    Tu->stop();
+    Td->stop();
+    Tbu->stop();
+    Trm->stop();
+
+
+    qpause->setGeometry(200,100,600,300);
+}
+
+void MainWindow::fresume()
+{
+    qpause->setGeometry(200,100,0,0);
+    pause->setGeometry(1000,500,200,100);
+    resume->setGeometry(1000,600,0,0);
+    if(judge==1)
+    {
+        Tu->start(t);
+
+    }else if(judge==0)
+    {
+        Td->start(t);
+    }
+
+    Tbu->start(t);
+    Trm->start(t);
+}
+
